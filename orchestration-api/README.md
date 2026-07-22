@@ -34,6 +34,7 @@ La **Merchant Transactions Orchestration API** es un microservicio de orquestaci
 | **Spring Boot** | **3.4.3** | Framework web empresarial con `RestClient` reactivo/sincrónico. |
 | **Puerto de la API** | **`8081`** | **Puerto HTTP asignado a la API Java de Orquestación**. |
 | **OpenAPI / Swagger** | **2.8.5** | Documentación interactiva en `http://localhost:8081/swagger-ui/index.html`. |
+| **Dashboard Integrado** | **Nativo** | Dashboard en tiempo real y simulador de estrés en `http://localhost:8081/`. |
 
 ### Novedades de Java 21 LTS Implementadas en Código
 - **Java 21 Virtual Threads (Project Loom)**: Activado nativamente (`spring.threads.virtual.enabled=true`) para el manejo masivo de peticiones concurrentes sin bloqueo de I/O.
@@ -112,10 +113,9 @@ sequenceDiagram
 docker-compose up --build -d
 ```
 
-### Documentación Interactiva Swagger UI
-
-Acceder desde el navegador a:
-👉 **`http://localhost:8081/swagger-ui/index.html`**
+### Dashboard Interactivo y Documentación
+- 🖥️ **Dashboard de Métricas y Simulador de Estrés**: **`http://localhost:8081/`**
+- 👉 **Documentación Swagger UI**: **`http://localhost:8081/swagger-ui/index.html`**
 
 ---
 

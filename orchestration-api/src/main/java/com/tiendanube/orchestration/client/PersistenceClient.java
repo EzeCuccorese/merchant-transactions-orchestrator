@@ -1,5 +1,6 @@
 package com.tiendanube.orchestration.client;
 
+import com.tiendanube.orchestration.domain.AuditAlertCode;
 import com.tiendanube.orchestration.domain.Receivable;
 import com.tiendanube.orchestration.domain.Transaction;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -104,8 +105,8 @@ public class PersistenceClient {
             }
         }
 
-        log.error("CRITICAL_AUDIT_ALERT: Failed compensating DELETE for transaction ID: {} after {} attempts. Manual DB reconciliation required!",
-                id, maxAttempts);
+        log.error("{}: Failed compensating DELETE for transaction ID: {} after {} attempts. Manual DB reconciliation required!",
+                AuditAlertCode.CRITICAL_AUDIT_ALERT, id, maxAttempts);
     }
 
     /**
@@ -131,7 +132,6 @@ public class PersistenceClient {
     /**
      * Fetches list of all transactions, protected by Resilience4j CircuitBreaker.
      *
-     * @param id transaction ID
      * @return list of transactions
      */
     @CircuitBreaker(name = "persistenceService")

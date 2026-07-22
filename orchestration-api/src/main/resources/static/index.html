@@ -163,17 +163,18 @@
         .button-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 1rem;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
         }
 
         .btn {
             background: var(--primary);
             color: white;
             border: none;
-            padding: 0.75rem 1.5rem;
+            padding: 0.65rem 1.25rem;
             border-radius: 10px;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             cursor: pointer;
             transition: all 0.2s;
             display: inline-flex;
@@ -212,6 +213,15 @@
             background: rgba(255, 255, 255, 0.15);
         }
 
+        .btn-purple {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-purple:hover {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+        }
+
         .console-panel {
             background: #05070d;
             border: 1px solid var(--card-border);
@@ -219,7 +229,7 @@
             padding: 1.25rem;
             font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
             font-size: 0.85rem;
-            max-height: 300px;
+            max-height: 320px;
             overflow-y: auto;
         }
 
@@ -297,16 +307,29 @@
             </div>
         </div>
 
-        <!-- Stress Testing Controls -->
+        <!-- Interactive Endpoints Execution Panel -->
         <div class="action-panel">
-            <h2>⚡ Control de Carga y Simulación de Estrés</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
-                Ejecuta pruebas de carga concurrentes para verificar el algoritmo CAS optimista y la respuesta con Virtual Threads en tiempo real.
+            <h2>🚀 Ejecución de Endpoints de la API</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
+                Probá los 4 endpoints principales expuestos por la API de Orquestación:
             </p>
             <div class="button-group">
-                <button class="btn" id="btn-single" onclick="executeSingleTx()">
-                    🚀 Enviar 1 Transacción
+                <button class="btn" onclick="executeSingleTx()">
+                    ➕ 1. Crear Transacción (POST /transactions)
                 </button>
+                <button class="btn btn-purple" onclick="executeGetAllTx()">
+                    📋 2. Listar Todas (GET /transactions)
+                </button>
+                <button class="btn btn-secondary" onclick="executeGetTxById()">
+                    🔍 3. Consultar por ID (GET /transactions/1)
+                </button>
+                <button class="btn btn-secondary" style="border: 1px solid rgba(239, 68, 68, 0.4);" onclick="executeDeleteTxById()">
+                    🗑️ 4. Eliminar por ID (DELETE /transactions/1)
+                </button>
+            </div>
+
+            <h2 style="font-size: 1rem; margin-top: 1.5rem; margin-bottom: 0.75rem;">⚡ Simulador de Estrés y Carga Concurrente</h2>
+            <div class="button-group">
                 <button class="btn btn-secondary" id="btn-stress-50" onclick="executeStressTest(50)">
                     ⚡ Estrés: 50 Peticiones Concurrentes
                 </button>
@@ -314,6 +337,7 @@
                     💥 Estrés Masivo: 200 Peticiones Concurrentes
                 </button>
             </div>
+
             <div class="links-bar">
                 <a href="/actuator/prometheus" target="_blank">📊 Endpoint Actuator Prometheus</a>
                 <a href="/swagger-ui/index.html" target="_blank">📄 Documentación Swagger UI</a>
@@ -324,7 +348,7 @@
         <!-- Realtime Output Console -->
         <div class="console-panel">
             <div class="console-header">
-                <span>CONSOLA DE EVENTOS EN VIVO</span>
+                <span>CONSOLA DE EVENTOS Y RESPUESTAS EN VIVO</span>
                 <span id="log-counter">0 eventos</span>
             </div>
             <div id="console-logs">
@@ -335,6 +359,7 @@
 
     <script>
         let logCount = 1;
+        let lastCreatedId = "1";
 
         function addLog(msg, type = 'info') {
             const container = document.getElementById('console-logs');
@@ -385,10 +410,9 @@
             }
         }
 
+        // Endpoint 1: POST /transactions
         async function executeSingleTx() {
-            const btn = document.getElementById('btn-single');
-            btn.disabled = true;
-            addLog('Enviando petición POST /transactions...', 'info');
+            addLog('▶️ Ejecutando 1. POST /transactions...', 'info');
 
             const payload = {
                 value: (Math.random() * 500 + 50).toFixed(2),
@@ -406,7 +430,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-Request-Id': `dashboard-req-${Date.now()}`
+                        'X-Request-Id': `req-${Date.now()}`
                     },
                     body: JSON.stringify(payload)
                 });
@@ -415,19 +439,75 @@
 
                 if (res.ok) {
                     const data = await res.json();
-                    addLog(`✅ Transacción Creada OK (HTTP ${res.status}) - Tx ID: ${data.transaction.id}, Rec ID: ${data.receivable.id}, Total: $${data.receivable.total} en ${duration} ms`, 'success');
+                    lastCreatedId = data.transaction.id;
+                    addLog(`✅ 1. POST /transactions (HTTP ${res.status} OK) - Tx ID: ${data.transaction.id}, Rec ID: ${data.receivable.id}, Total: $${data.receivable.total} (${duration} ms)`, 'success');
                 } else {
                     const err = await res.text();
-                    addLog(`❌ Error en Transacción (HTTP ${res.status}): ${err}`, 'error');
+                    addLog(`❌ 1. POST /transactions (HTTP ${res.status}): ${err}`, 'error');
                 }
             } catch (e) {
                 addLog(`💥 Error de Conexión: ${e.message}`, 'error');
             } finally {
-                btn.disabled = false;
                 fetchMetrics();
             }
         }
 
+        // Endpoint 2: GET /transactions
+        async function executeGetAllTx() {
+            addLog('▶️ Ejecutando 2. GET /transactions...', 'info');
+            const start = performance.now();
+            try {
+                const res = await fetch('/transactions');
+                const duration = Math.round(performance.now() - start);
+                if (res.ok) {
+                    const list = await res.json();
+                    addLog(`✅ 2. GET /transactions (HTTP ${res.status} OK) - Se obtuvieron ${list.length} transacciones (${duration} ms)`, 'success');
+                } else {
+                    addLog(`❌ 2. GET /transactions (HTTP ${res.status})`, 'error');
+                }
+            } catch (e) {
+                addLog(`💥 Error: ${e.message}`, 'error');
+            }
+        }
+
+        // Endpoint 3: GET /transactions/{id}
+        async function executeGetTxById() {
+            const targetId = lastCreatedId;
+            addLog(`▶️ Ejecutando 3. GET /transactions/${targetId}...`, 'info');
+            const start = performance.now();
+            try {
+                const res = await fetch(`/transactions/${targetId}`);
+                const duration = Math.round(performance.now() - start);
+                if (res.ok) {
+                    const data = await res.json();
+                    addLog(`✅ 3. GET /transactions/${targetId} (HTTP ${res.status} OK) - Tx ID: ${data.id}, Card: ****${data.cardNumber}, Value: $${data.value} (${duration} ms)`, 'success');
+                } else {
+                    addLog(`⚠️ 3. GET /transactions/${targetId} (HTTP ${res.status} Not Found)`, 'warn');
+                }
+            } catch (e) {
+                addLog(`💥 Error: ${e.message}`, 'error');
+            }
+        }
+
+        // Endpoint 4: DELETE /transactions/{id}
+        async function executeDeleteTxById() {
+            const targetId = lastCreatedId;
+            addLog(`▶️ Ejecutando 4. DELETE /transactions/${targetId}...`, 'warn');
+            const start = performance.now();
+            try {
+                const res = await fetch(`/transactions/${targetId}`, { method: 'DELETE' });
+                const duration = Math.round(performance.now() - start);
+                if (res.status === 204 || res.ok) {
+                    addLog(`🗑️ 4. DELETE /transactions/${targetId} (HTTP ${res.status} No Content) - Eliminada correctamente (${duration} ms)`, 'success');
+                } else {
+                    addLog(`⚠️ 4. DELETE /transactions/${targetId} (HTTP ${res.status})`, 'warn');
+                }
+            } catch (e) {
+                addLog(`💥 Error: ${e.message}`, 'error');
+            }
+        }
+
+        // Stress Test Generator
         async function executeStressTest(count) {
             const btn50 = document.getElementById('btn-stress-50');
             const btn200 = document.getElementById('btn-stress-200');

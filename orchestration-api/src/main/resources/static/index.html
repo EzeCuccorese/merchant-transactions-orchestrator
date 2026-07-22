@@ -229,8 +229,9 @@
             padding: 1.25rem;
             font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
             font-size: 0.85rem;
-            max-height: 320px;
+            max-height: 240px;
             overflow-y: auto;
+            margin-bottom: 2rem;
         }
 
         .console-header {
@@ -348,12 +349,21 @@
         <!-- Realtime Output Console -->
         <div class="console-panel">
             <div class="console-header">
-                <span>CONSOLA DE EVENTOS Y RESPUESTAS EN VIVO</span>
+                <span>CONSOLA DE EVENTOS EN VIVO</span>
                 <span id="log-counter">0 eventos</span>
             </div>
             <div id="console-logs">
                 <div class="log-entry log-info">[SYSTEM] Dashboard de Orquestación inicializado correctamente. Esperando acciones...</div>
             </div>
+        </div>
+
+        <!-- Formatted JSON Response Viewer -->
+        <div class="action-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <h2>📄 Visor de Respuesta JSON (HTTP Response Body)</h2>
+                <button class="btn btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.75rem;" onclick="clearJsonViewer()">Limpiar Visor</button>
+            </div>
+            <pre id="json-viewer" style="background: #05070d; border: 1px solid var(--card-border); border-radius: 12px; padding: 1.25rem; color: #34d399; font-family: 'SFMono-Regular', Consolas, monospace; font-size: 0.85rem; max-height: 400px; overflow: auto; white-space: pre-wrap; word-break: break-all;">Hacé click en cualquier botón para ver el JSON formateado retornado por la API...</pre>
         </div>
     </div>
 
@@ -371,6 +381,14 @@
             container.scrollTop = container.scrollHeight;
             logCount++;
             document.getElementById('log-counter').textContent = `${logCount} eventos`;
+        }
+
+        function displayJson(data) {
+            document.getElementById('json-viewer').textContent = JSON.stringify(data, null, 2);
+        }
+
+        function clearJsonViewer() {
+            document.getElementById('json-viewer').textContent = "Visor de JSON limpio. Esperando nueva acción...";
         }
 
         async function fetchMetrics() {
@@ -440,9 +458,11 @@
                 if (res.ok) {
                     const data = await res.json();
                     lastCreatedId = data.transaction.id;
+                    displayJson(data);
                     addLog(`✅ 1. POST /transactions (HTTP ${res.status} OK) - Tx ID: ${data.transaction.id}, Rec ID: ${data.receivable.id}, Total: $${data.receivable.total} (${duration} ms)`, 'success');
                 } else {
                     const err = await res.text();
+                    displayJson({ error: err, status: res.status });
                     addLog(`❌ 1. POST /transactions (HTTP ${res.status}): ${err}`, 'error');
                 }
             } catch (e) {
@@ -461,6 +481,7 @@
                 const duration = Math.round(performance.now() - start);
                 if (res.ok) {
                     const list = await res.json();
+                    displayJson(list);
                     addLog(`✅ 2. GET /transactions (HTTP ${res.status} OK) - Se obtuvieron ${list.length} transacciones (${duration} ms)`, 'success');
                 } else {
                     addLog(`❌ 2. GET /transactions (HTTP ${res.status})`, 'error');
@@ -480,8 +501,11 @@
                 const duration = Math.round(performance.now() - start);
                 if (res.ok) {
                     const data = await res.json();
+                    displayJson(data);
                     addLog(`✅ 3. GET /transactions/${targetId} (HTTP ${res.status} OK) - Tx ID: ${data.id}, Card: ****${data.cardNumber}, Value: $${data.value} (${duration} ms)`, 'success');
                 } else {
+                    const err = await res.json();
+                    displayJson(err);
                     addLog(`⚠️ 3. GET /transactions/${targetId} (HTTP ${res.status} Not Found)`, 'warn');
                 }
             } catch (e) {
@@ -498,6 +522,7 @@
                 const res = await fetch(`/transactions/${targetId}`, { method: 'DELETE' });
                 const duration = Math.round(performance.now() - start);
                 if (res.status === 204 || res.ok) {
+                    displayJson({ message: `Transaction ${targetId} deleted successfully`, status: 204 });
                     addLog(`🗑️ 4. DELETE /transactions/${targetId} (HTTP ${res.status} No Content) - Eliminada correctamente (${duration} ms)`, 'success');
                 } else {
                     addLog(`⚠️ 4. DELETE /transactions/${targetId} (HTTP ${res.status})`, 'warn');
@@ -543,6 +568,16 @@
                 const totalDuration = Math.round(performance.now() - startTime);
                 const successes = responses.filter(r => r.status === 201).length;
                 const failures = responses.length - successes;
+
+                displayJson({
+                    stressTestSummary: {
+                        totalConcurrentRequests: count,
+                        successful: successes,
+                        failed: failures,
+                        totalDurationMs: totalDuration,
+                        avgLatencyMsPerReq: Math.round(totalDuration / count)
+                    }
+                });
 
                 addLog(`✨ PRUEBA DE ESTRÉS FINALIZADA en ${totalDuration} ms`, 'success');
                 addLog(`📊 RESULTADOS: Total: ${count} | Exitosas: ${successes} | Fallidas: ${failures} | Latencia Promedio: ${Math.round(totalDuration / count)} ms/req`, successes === count ? 'success' : 'warn');

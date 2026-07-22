@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.List;
 
@@ -45,6 +46,19 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getTitle()).isEqualTo("TRANSACTION_NOT_FOUND");
+    }
+
+    @Test
+    @DisplayName("Should map NoResourceFoundException to 404 Not Found ProblemDetail")
+    void shouldHandleNoResourceFoundException() {
+        final NoResourceFoundException ex = Mockito.mock(NoResourceFoundException.class);
+        when(ex.getMessage()).thenReturn("No static resource favicon.ico.");
+
+        final ResponseEntity<ProblemDetail> response = handler.handleNoResourceFoundException(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getTitle()).isEqualTo("RESOURCE_NOT_FOUND");
     }
 
     @Test

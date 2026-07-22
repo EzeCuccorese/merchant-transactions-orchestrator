@@ -4,6 +4,7 @@ import com.tiendanube.orchestration.domain.exception.CardValidationException;
 import com.tiendanube.orchestration.domain.exception.NumeratorConflictException;
 import com.tiendanube.orchestration.domain.exception.OrchestrationRollbackException;
 import com.tiendanube.orchestration.domain.exception.TransactionNotFoundException;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -44,6 +45,20 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getTitle()).isEqualTo("TRANSACTION_NOT_FOUND");
+    }
+
+    @Test
+    @DisplayName("Should map CallNotPermittedException to 503 Service Unavailable ProblemDetail when CircuitBreaker is OPEN")
+    void shouldHandleCircuitBreakerOpenException() {
+        final CallNotPermittedException ex = Mockito.mock(CallNotPermittedException.class);
+        when(ex.getMessage()).thenReturn("CircuitBreaker 'numeratorService' is OPEN");
+
+        final ResponseEntity<ProblemDetail> response = handler.handleCircuitBreakerOpenException(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getTitle()).isEqualTo("CIRCUIT_BREAKER_OPEN");
+        assertThat(response.getBody().getDetail()).contains("Downstream service is temporarily unavailable");
     }
 
     @Test

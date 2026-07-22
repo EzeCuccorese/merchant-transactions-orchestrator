@@ -2,6 +2,7 @@ package com.tiendanube.orchestration.client;
 
 import com.tiendanube.orchestration.domain.Receivable;
 import com.tiendanube.orchestration.domain.Transaction;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -13,7 +14,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * HTTP Client executing I/O operations against json-server persistence service.
+ * HTTP Client executing I/O operations against json-server persistence service,
+ * protected by Resilience4j CircuitBreaker for network fault tolerance.
  * Includes resilient compensating transaction rollbacks with retries and critical audit alerts.
  */
 @Slf4j
@@ -32,11 +34,12 @@ public class PersistenceClient {
     }
 
     /**
-     * Persists a transaction entity into json-server.
+     * Persists a transaction entity into json-server, protected by Resilience4j CircuitBreaker.
      *
      * @param transaction entity to persist
      * @return persisted transaction response
      */
+    @CircuitBreaker(name = "persistenceService")
     public Transaction saveTransaction(final Transaction transaction) {
         log.debug("Persisting transaction ID: {}", transaction.id());
         final long start = System.currentTimeMillis();
@@ -50,11 +53,12 @@ public class PersistenceClient {
     }
 
     /**
-     * Persists a receivable entity into json-server.
+     * Persists a receivable entity into json-server, protected by Resilience4j CircuitBreaker.
      *
      * @param receivable entity to persist
      * @return persisted receivable response
      */
+    @CircuitBreaker(name = "persistenceService")
     public Receivable saveReceivable(final Receivable receivable) {
         log.debug("Persisting receivable ID: {} for transaction ID: {}", receivable.id(), receivable.transactionId());
         final long start = System.currentTimeMillis();
@@ -73,6 +77,7 @@ public class PersistenceClient {
      *
      * @param id transaction ID to delete
      */
+    @CircuitBreaker(name = "persistenceService")
     public void deleteTransaction(final String id) {
         log.warn("Initiating compensating DELETE for transaction ID: {}", id);
         final int maxAttempts = 3;
@@ -104,11 +109,12 @@ public class PersistenceClient {
     }
 
     /**
-     * Fetches a transaction by ID.
+     * Fetches a transaction by ID, protected by Resilience4j CircuitBreaker.
      *
      * @param id transaction ID
      * @return Optional containing transaction if found
      */
+    @CircuitBreaker(name = "persistenceService")
     public Optional<Transaction> getTransactionById(final String id) {
         try {
             final Transaction transaction = restClient.get()
@@ -123,10 +129,12 @@ public class PersistenceClient {
     }
 
     /**
-     * Fetches list of all transactions.
+     * Fetches list of all transactions, protected by Resilience4j CircuitBreaker.
      *
+     * @param id transaction ID
      * @return list of transactions
      */
+    @CircuitBreaker(name = "persistenceService")
     public List<Transaction> getAllTransactions() {
         try {
             final List<Transaction> transactions = restClient.get()

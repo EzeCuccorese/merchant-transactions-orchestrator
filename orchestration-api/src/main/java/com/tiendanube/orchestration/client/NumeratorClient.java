@@ -2,6 +2,7 @@ package com.tiendanube.orchestration.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tiendanube.orchestration.domain.exception.NumeratorConflictException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -16,10 +17,11 @@ import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * HTTP Client communicating with external numerator-api to obtain unique sequential IDs
- * using Compare-And-Swap (test-and-set) optimistic locking with exponential backoff and jitter.
+ * using Compare-And-Swap (test-and-set) optimistic locking with exponential backoff and jitter,
+ * protected by Resilience4j CircuitBreaker for network fault tolerance.
  *
  * Features:
- * - Standard 100% Java 21 LTS implementation.
+ * - Resilience4j CircuitBreaker protection ("numeratorService").
  * - CAS Pair Reservation: generateUniqueIdPair() acquires 2 IDs in a single atomic HTTP call.
  * - Micrometer Metrics: tracks CAS attempts and conflict counters.
  * - Clean DEBUG-level CAS loop logging.
@@ -57,11 +59,12 @@ public class NumeratorClient {
 
     /**
      * Atomically generates a pair of 2 unique sequential string IDs (firstId, secondId)
-     * in a single atomic CAS operation (newValue = oldValue + 2), reducing HTTP contention by 50%.
+     * in a single atomic CAS operation (newValue = oldValue + 2), protected by Resilience4j CircuitBreaker.
      *
      * @return IdPair containing transactionId (firstId) and receivableId (secondId)
      * @throws NumeratorConflictException if retries are exhausted or service fails
      */
+    @CircuitBreaker(name = "numeratorService")
     public IdPair generateUniqueIdPair() {
         final Random random = ThreadLocalRandom.current();
         long currentOldValue = getCurrentNumerator();
@@ -113,11 +116,13 @@ public class NumeratorClient {
     }
 
     /**
-     * Atomically generates a single unique sequential string ID using test-and-set with retries.
+     * Atomically generates a single unique sequential string ID using test-and-set with retries,
+     * protected by Resilience4j CircuitBreaker.
      *
      * @return unique generated string ID
      * @throws NumeratorConflictException if retries are exhausted or service fails
      */
+    @CircuitBreaker(name = "numeratorService")
     public String generateUniqueId() {
         final Random random = ThreadLocalRandom.current();
         long currentOldValue = getCurrentNumerator();

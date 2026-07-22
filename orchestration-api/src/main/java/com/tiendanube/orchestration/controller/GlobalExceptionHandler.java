@@ -4,6 +4,7 @@ import com.tiendanube.orchestration.domain.exception.BusinessException;
 import com.tiendanube.orchestration.domain.exception.NumeratorConflictException;
 import com.tiendanube.orchestration.domain.exception.OrchestrationRollbackException;
 import com.tiendanube.orchestration.domain.exception.TransactionNotFoundException;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -57,6 +58,16 @@ public class GlobalExceptionHandler {
         pd.setTitle("VALIDATION_ERROR");
         pd.setProperty("timestamp", Instant.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
+    }
+
+    @ExceptionHandler(CallNotPermittedException.class)
+    public ResponseEntity<ProblemDetail> handleCircuitBreakerOpenException(final CallNotPermittedException ex) {
+        log.error("Circuit breaker is OPEN: {}", ex.getMessage());
+        final ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, "Downstream service is temporarily unavailable due to open circuit breaker");
+        pd.setType(URI.create("https://tiendanube.com/errors/service-unavailable"));
+        pd.setTitle("CIRCUIT_BREAKER_OPEN");
+        pd.setProperty("timestamp", Instant.now());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(pd);
     }
 
     @ExceptionHandler({NumeratorConflictException.class, OrchestrationRollbackException.class})

@@ -32,19 +32,32 @@ La **Merchant Transactions Orchestration API** es un microservicio de orquestaci
 | :--- | :--- | :--- |
 | **Java** | **21 LTS** | Runtime y lenguaje de programación principal. |
 | **Spring Boot** | **3.4.3** | Framework web empresarial con `RestClient` reactivo/sincrónico. |
+| **Resilience4j** | **2.2.0** | CircuitBreaker declarativo para tolerancia a fallos de red (`@CircuitBreaker`). |
 | **Puerto de la API** | **`8081`** | **Puerto HTTP asignado a la API Java de Orquestación**. |
 | **OpenAPI / Swagger** | **2.8.5** | Documentación interactiva en `http://localhost:8081/swagger-ui/index.html`. |
 | **Dashboard Integrado** | **Nativo** | Dashboard en tiempo real y simulador de estrés en `http://localhost:8081/`. |
 
 ### Novedades de Java 21 LTS Implementadas en Código
 - **Java 21 Virtual Threads (Project Loom)**: Activado nativamente (`spring.threads.virtual.enabled=true`) para el manejo masivo de peticiones concurrentes sin bloqueo de I/O.
-- **Java 21 Record Classes**: Clases `record` inmutables nativas para DTOs.
+- **Java 21 Record Classes**: Clases `record` inmutables nativas para DTOs y Value Objects.
 - **Java 21 Sequenced Collections**: Acceso seguro y expresivo a colecciones ordenadas mediante `.getFirst()`.
 - **Pattern Matching & Switch Expressions**: Expresiones de coincidencia de patrones nativas en Java 21.
 
 ---
 
-## 🔒 3. Concurrencia y Algoritmo CAS (Compare-And-Swap)
+## 🛡️ 3. Tolerancia a Fallos (Resilience4j) & Auditoría Estandarizada
+
+### Resilience4j CircuitBreaker
+Para evitar el colapso de la aplicación ante caídas o degradación de los servicios externos (`numerator-api` y `json-server`), la API implementa **Resilience4j CircuitBreaker**:
+- **Instancias**: `numeratorService` y `persistenceService`.
+- **Comportamiento**: Ante fallos persistentes de red o timeouts, el circuito conmuta a estado **`OPEN`**, haciendo *fail-fast* y retornando HTTP 503 (`SERVICE_UNAVAILABLE` ProblemDetail RFC 7807) sin saturar los recursos del servidor.
+
+### Auditoría Estandarizada (`AuditAlertCode`)
+Las alertas operativas y de fallo compensatorio se canalizan mediante el enum tipado `AuditAlertCode` (`CRITICAL_AUDIT_ALERT`, `NUMERATOR_CAS_CONFLICT`, `ORCHESTRATION_ROLLBACK`), permitiendo a sistemas de monitoreo empresarial (Datadog/ElasticSearch) aplicar reglas de alerta automáticas.
+
+---
+
+## 🔒 4. Concurrencia y Algoritmo CAS (Compare-And-Swap)
 
 Para garantizar identificadores únicos y secuenciales sin generar cuellos de botella por bloqueos distribuidos (locks), la API implementa el algoritmo atómico **Compare-And-Swap (CAS)** mediante el endpoint `PUT /numerator/test-and-set`.
 
@@ -57,7 +70,7 @@ Para garantizar identificadores únicos y secuenciales sin generar cuellos de bo
 
 ---
 
-## 📊 4. Reglas de Negocio Financieras
+## 📊 5. Reglas de Negocio Financieras
 
 | Método de Pago | Formato JSON | Tasa de Comisión | Fecha de Liquidación | Estado del Receivable |
 | :--- | :--- | :--- | :--- | :--- |
@@ -66,7 +79,7 @@ Para garantizar identificadores únicos y secuenciales sin generar cuellos de bo
 
 ---
 
-## 🏗️ 5. Diagrama de Secuencia de Orquestación
+## 🏗️ 6. Diagrama de Secuencia de Orquestación
 
 ```mermaid
 sequenceDiagram
@@ -80,7 +93,7 @@ sequenceDiagram
     API->>API: Validar payload & aplicar enmascaramiento PCI-DSS
     
     rect rgb(240, 248, 255)
-        note over API,Num: Algoritmo CAS Atómico en Par de IDs con Exponential Backoff & Jitter
+        note over API,Num: Algoritmo CAS Atómico en Par de IDs con Resilience4j & Jitter
         API->>Num: GET /numerator
         Num-->>API: { "numerator": 99 }
         API->>Num: PUT /numerator/test-and-set { oldValue: 99, newValue: 101 }
@@ -100,7 +113,7 @@ sequenceDiagram
 
 ---
 
-## ⚡ 6. Guía de Inicio Rápido y Puertos
+## ⚡ 7. Guía de Inicio Rápido y Puertos
 
 ### Puertos de los Servicios
 - **`orchestration-api` (API Java Spring Boot)**: **`http://localhost:8081`**
@@ -119,7 +132,7 @@ docker-compose up --build -d
 
 ---
 
-## 🧪 7. Pruebas y Cobertura ($\ge 95\%$ JaCoCo)
+## 🧪 8. Pruebas y Cobertura ($\ge 95\%$ JaCoCo)
 
 Ejecutar la suite completa de pruebas unitarias e integración:
 
@@ -129,7 +142,7 @@ Ejecutar la suite completa de pruebas unitarias e integración:
 
 ---
 
-## 📮 8. Colección de Postman
+## 📮 9. Colección de Postman
 
 La colección oficial se encuentra ubicada en la raíz de `orchestration-api`:
 📄 [`postman_collection.json`](./postman_collection.json)

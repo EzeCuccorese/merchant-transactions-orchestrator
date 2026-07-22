@@ -1,0 +1,128 @@
+{
+	"info": {
+		"_postman_id": "a9b8c7d6-e5f4-4321-8765-fedcba987654",
+		"name": "Merchant Transactions Orchestration API",
+		"description": "Postman Collection for Merchant Transactions Orchestration API (Java 21 LTS & Spring Boot 3.4)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Transactions",
+			"item": [
+				{
+					"name": "Create Transaction - Debit Card",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Request-Id",
+								"value": "req-postman-001"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"value\": \"340.50\",\n  \"description\": \"T-Shirt Black/M\",\n  \"method\": \"debit_card\",\n  \"cardNumber\": \"4532123456783486\",\n  \"cardHolderName\": \"Fonsi Julian\",\n  \"cardExpirationDate\": \"04/28\",\n  \"cardCvv\": \"290\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8081/transactions",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Transaction - Credit Card",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Request-Id",
+								"value": "req-postman-002"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"value\": \"250.00\",\n  \"description\": \"Jeans Slim Fit\",\n  \"method\": \"credit_card\",\n  \"cardNumber\": \"5412751234567890\",\n  \"cardHolderName\": \"Simplenube Store\",\n  \"cardExpirationDate\": \"11/29\",\n  \"cardCvv\": \"888\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8081/transactions",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Transaction By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Request-Id",
+								"value": "req-postman-003"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/transactions/100",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"transactions",
+								"100"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Transactions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Request-Id",
+								"value": "req-postman-004"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/transactions",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

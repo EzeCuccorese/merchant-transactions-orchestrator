@@ -1,0 +1,46 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: orchestration-api
+  threads:
+    virtual:
+      enabled: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: orchestration-api
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    use-root-path: true
+
+services:
+  persistence:
+    url: ${PERSISTENCE_SERVICE_URL:http://localhost:8080}
+  numerator:
+    url: ${NUMERATOR_SERVICE_URL:http://localhost:3000}
+    retry:
+      max-attempts: ${NUMERATOR_RETRY_MAX_ATTEMPTS:5}
+      min-delay-ms: ${NUMERATOR_RETRY_MIN_DELAY_MS:10}
+      max-delay-ms: ${NUMERATOR_RETRY_MAX_DELAY_MS:100}
+
+http:
+  client:
+    connect-timeout-ms: 5000
+    read-timeout-ms: 5000

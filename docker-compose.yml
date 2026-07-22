@@ -19,6 +19,17 @@ services:
     volumes:
       - ./numerator-api:/app
 
+  orchestration-api:
+    build: ./orchestration-api
+    ports:
+      - "8081:8081"
+    environment:
+      - PERSISTENCE_SERVICE_URL=http://json-server:8080
+      - NUMERATOR_SERVICE_URL=http://numerator-api:3000
+    depends_on:
+      - json-server
+      - numerator-api
+
   tcpdump:
     image: alpine
     command: sh -c "apk add --no-cache ngrep && ngrep -l -s 200000 -d any -W byline -q -t '^(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS) ' port 8080"

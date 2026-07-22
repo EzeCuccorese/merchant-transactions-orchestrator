@@ -1,2 +1,9 @@
-.idea
-node_modules
+.gradle/
+build/
+bin/
+node_modules/
+IMPLEMENTATION_SUMMARY.md
+.DS_Store
+*.log
+.idea/
+*.iml

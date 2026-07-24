@@ -23,11 +23,11 @@ Construir una API de Orquestación de nivel empresarial en **Java 21 LTS** utili
 
 > [!IMPORTANT]
 > **1. README Completo y Diagramas de Flujo Mermaid**
-> - Creación del archivo [`orchestration-api/README.md`](file:///Users/eze/projects/merchant-transactions-api-regqmm/orchestration-api/README.md) detallando stack tecnológico, reglas de negocio, guía de ejecución con Docker Compose y diagrama de secuencia Mermaid.
+> - Creación del archivo [`orchestration-api/README.md`](file:///Users/eze/projects/merchant-transactions-orchestrator/orchestration-api/README.md) detallando stack tecnológico, reglas de negocio, guía de ejecución con Docker Compose y diagrama de secuencia Mermaid.
 
 > [!IMPORTANT]
 > **2. Colección Oficial de Postman Reubicada**
-> - Reubicación de [`postman_collection.json`](file:///Users/eze/projects/merchant-transactions-api-regqmm/orchestration-api/postman_collection.json) en la raíz del proyecto `orchestration-api/` junto al `README.md`.
+> - Reubicación de [`postman_collection.json`](file:///Users/eze/projects/merchant-transactions-orchestrator/orchestration-api/postman_collection.json) en la raíz del proyecto `orchestration-api/` junto al `README.md`.
 
 > [!IMPORTANT]
 > **3. OpenAPI 3.0 / Swagger UI**
@@ -44,7 +44,7 @@ Construir una API de Orquestación de nivel empresarial en **Java 21 LTS** utili
 
 ---
 
-## Estructura de Paquetes (`com.tiendanube.orchestration`)
+## Estructura de Paquetes (`com.merchant.orchestration`)
 
 ```
 src/main/java/com/tiendanube/orchestration/

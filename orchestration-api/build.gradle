@@ -6,11 +6,11 @@ plugins {
     id 'jacoco'
 }
 
-group = 'com.tiendanube'
+group = 'com.merchant.orchestration'
 version = '1.0.0'
 
 springBoot {
-    mainClass = 'com.tiendanube.orchestration.OrchestrationApplication'
+    mainClass = 'com.merchant.orchestration.OrchestrationApplication'
 }
 
 lombok {

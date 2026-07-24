@@ -25,10 +25,10 @@ Fortalecer la API de Orquestación incorporando un ecosistema completo de **Obse
 
 ### Archivos de Configuración y Build
 
-#### [MODIFY] [build.gradle](file:///Users/eze/projects/merchant-transactions-api-regqmm/orchestration-api/build.gradle)
+#### [MODIFY] [build.gradle](file:///Users/eze/projects/merchant-transactions-orchestrator/orchestration-api/build.gradle)
 - Agregar `org.springframework.boot:spring-boot-starter-actuator` y `io.micrometer:micrometer-registry-prometheus`.
 
-#### [MODIFY] [application.yml](file:///Users/eze/projects/merchant-transactions-api-regqmm/orchestration-api/src/main/resources/application.yml)
+#### [MODIFY] [application.yml](file:///Users/eze/projects/merchant-transactions-orchestrator/orchestration-api/src/main/resources/application.yml)
 - Configurar exposición de Actuator (`management.endpoints.web.exposure.include: health,info,metrics,prometheus`).
 - Habilitar tags comunes (`application: orchestration-api`).
 
@@ -36,28 +36,28 @@ Fortalecer la API de Orquestación incorporando un ecosistema completo de **Obse
 
 ### Componentes de Dominio y Clientes HTTP
 
-#### [MODIFY] [NumeratorClient.java](file:///Users/eze/projects/merchant-transactions-api-regqmm/orchestration-api/src/main/java/com/tiendanube/orchestration/client/NumeratorClient.java)
+#### [MODIFY] [NumeratorClient.java](file:///Users/eze/projects/merchant-transactions-orchestrator/orchestration-api/src/main/java/com/merchant/orchestration/client/NumeratorClient.java)
 - Implementar `generateUniqueIdPair()` reservando `oldValue + 1` (Transacción) y `oldValue + 2` (Receivable) en un único intento CAS.
 - Instrumentar métricas `numerator.cas.attempts` y `numerator.cas.conflicts.total` en `MeterRegistry`.
 
-#### [MODIFY] [PersistenceClient.java](file:///Users/eze/projects/merchant-transactions-api-regqmm/orchestration-api/src/main/java/com/tiendanube/orchestration/client/PersistenceClient.java)
+#### [MODIFY] [PersistenceClient.java](file:///Users/eze/projects/merchant-transactions-orchestrator/orchestration-api/src/main/java/com/merchant/orchestration/client/PersistenceClient.java)
 - Agregar reintentos con Exponential Backoff en `deleteTransaction(id)` con logging de auditoría crítica (`CRITICAL_AUDIT_ALERT`).
 
-#### [MODIFY] [OrchestrationService.java](file:///Users/eze/projects/merchant-transactions-api-regqmm/orchestration-api/src/main/java/com/tiendanube/orchestration/service/OrchestrationService.java)
+#### [MODIFY] [OrchestrationService.java](file:///Users/eze/projects/merchant-transactions-orchestrator/orchestration-api/src/main/java/com/merchant/orchestration/service/OrchestrationService.java)
 - Usar `generateUniqueIdPair()` de `NumeratorClient`.
 - Inyectar `MeterRegistry` para registrar `transactions.created.total`, `transactions.amount.total`, `orchestration.rollback.total` y `orchestration.creation.latency`.
 
-#### [MODIFY] [TracingFilter.java](file:///Users/eze/projects/merchant-transactions-api-regqmm/orchestration-api/src/main/java/com/tiendanube/orchestration/filter/TracingFilter.java)
+#### [MODIFY] [TracingFilter.java](file:///Users/eze/projects/merchant-transactions-orchestrator/orchestration-api/src/main/java/com/merchant/orchestration/filter/TracingFilter.java)
 - Logging estructurado de ingreso/egreso HTTP con tiempos de ejecución y MDC.
 
-#### [MODIFY] [GlobalExceptionHandler.java](file:///Users/eze/projects/merchant-transactions-api-regqmm/orchestration-api/src/main/java/com/tiendanube/orchestration/controller/GlobalExceptionHandler.java)
+#### [MODIFY] [GlobalExceptionHandler.java](file:///Users/eze/projects/merchant-transactions-orchestrator/orchestration-api/src/main/java/com/merchant/orchestration/controller/GlobalExceptionHandler.java)
 - Structured WARN/ERROR logging con correlación de `X-Request-Id` y `X-Trace-Id`.
 
 ---
 
 ### Pruebas de Carga y Concurrencia Masiva
 
-#### [NEW] [OrchestrationConcurrencyIntegrationTest.java](file:///Users/eze/projects/merchant-transactions-api-regqmm/orchestration-api/src/test/java/com/tiendanube/orchestration/OrchestrationConcurrencyIntegrationTest.java)
+#### [NEW] [OrchestrationConcurrencyIntegrationTest.java](file:///Users/eze/projects/merchant-transactions-orchestrator/orchestration-api/src/test/java/com/merchant/orchestration/OrchestrationConcurrencyIntegrationTest.java)
 - Crear prueba de carga masiva ejecutando **200 peticiones simultáneas** en hilos virtuales (`Executors.newVirtualThreadPerTaskExecutor()`).
 - Verificar ausencia de condiciones de carrera, unicidad absoluta de IDs y consistencia en los contadores de Micrometer.
 

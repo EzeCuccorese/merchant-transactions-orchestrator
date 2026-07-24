@@ -1,8 +1,8 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.4.3'
+    id 'org.springframework.boot' version '4.1.0'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'io.freefair.lombok' version '8.10'
+    id 'io.freefair.lombok' version '8.12.2'
     id 'jacoco'
 }
 
@@ -13,9 +13,13 @@ springBoot {
     mainClass = 'com.tiendanube.orchestration.OrchestrationApplication'
 }
 
+lombok {
+    version = '1.18.46'
+}
+
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
@@ -24,23 +28,31 @@ repositories {
 }
 
 dependencies {
+    implementation platform('org.springframework.boot:spring-boot-dependencies:4.1.0')
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.boot:spring-boot-starter-aop'
+    implementation 'org.springframework.boot:spring-boot-starter-aspectj'
     implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
     implementation 'org.apache.commons:commons-lang3:3.18.0'
 
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testCompileOnly 'org.projectlombok:lombok'
-    testAnnotationProcessor 'org.projectlombok:lombok'
+    compileOnly 'org.projectlombok:lombok:1.18.46'
+    annotationProcessor 'org.projectlombok:lombok:1.18.46'
+    testCompileOnly 'org.projectlombok:lombok:1.18.46'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.46'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-web-server-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-restclient-test'
     testImplementation 'org.wiremock:wiremock-standalone:3.10.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-Xlint:deprecation"
 }
 
 tasks.named('test') {
